@@ -54,8 +54,9 @@ async function displayBlogPost(blogPosts) {
     blogPostContainer.innerHTML = "";
 
     blogPosts.forEach(blogPost => {
-        const cardElement = createBlogPostCard(blogPost);
-        let postPopup = createBlogPostCard(blogPost);
+        let cardElement = createBlogPostCard(blogPost);
+        let postPopup = createBlogPostCard(blogPost, cardElement);
+        cardElement = createBlogPostCard(blogPost, postPopup);
         if (isLoggedIn) {
             const commentForm = createCommentForm(blogPost);
             postPopup.appendChild(commentForm);
@@ -121,7 +122,7 @@ function setShowMoreButton() {
     });
 }
 
-function createBlogPostCard(blogPost) {
+function createBlogPostCard(blogPost , card) {
     const cardElement = document.createElement("div");
     const titleElement = document.createElement("h3");
     titleElement.textContent = blogPost.title;
@@ -152,13 +153,15 @@ function createBlogPostCard(blogPost) {
             blogPost.likes++;
             postLikeButton.querySelector(".like-count").textContent = blogPost.likes;
             blogPost.liked = true;
-            await fetchBlogPosts();
+
+            const cardLikeButton = card.querySelector(".like-button");
+            cardLikeButton.querySelector(".like-count").textContent = blogPost.likes;
         } catch (error){
             console.error("Error", error.message);
         }
     });
 
-    const commentsElement = createCommentElement(blogPost);
+    const commentsElement = createCommentElement(blogPost, card);
     cardElement.appendChild(postLikeButton);
     cardElement.appendChild(commentsElement);
     cardElement.classList.add("post");
@@ -183,7 +186,7 @@ function createLikeElement(blogPost) {
     return likeButton;
 }
 
-function createCommentElement(blogPost) {
+function createCommentElement(blogPost, card) {
     const commentElement = document.createElement("ul");
     commentElement.classList.add("comment-list");
 
@@ -193,6 +196,7 @@ function createCommentElement(blogPost) {
         const content= document.createElement("span");
         content.textContent = `${comment.userName} : ${comment.text}`;
         content.classList.add("comment-item");
+        commentItem.id = "comment-item-" + index;
 
         const likeButton = createLikeElement(comment);
         commentItem.appendChild(content);
@@ -215,7 +219,9 @@ function createCommentElement(blogPost) {
                 comment.likes++;
                 likeButton.querySelector(".like-count").textContent = comment.likes;
                 comment.liked = true;
-                await fetchBlogPosts();
+
+                const cardLikeButton = card.querySelector(`#comment-item-${index} .like-button`);
+                cardLikeButton.querySelector(".like-count").textContent = comment.likes;
             } catch (error){
                 console.error("Error", error.message);
             }
